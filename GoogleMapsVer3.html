@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #mapa { width: 500px;	height: 400px }
+    </style>
+	
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?sensor=false">
+	  //esto se usa para utilizar la api, el parametro sensor, puede ser true o false, depende de si se usa un sensor(ejemplo localizador gps)
+	  //Mas info aca: https://developers.google.com/maps/documentation/javascript/tutorial
+    </script>
+    <script type="text/javascript">
+		function initialize(){
+			//variables para ubicar un sitio en el mapa
+			var latitud = 4.728702;
+			var longitud = -74.115899;
+			var zoom = 20;
+		  						
+			/*
+				Opciones del Mapa:
+				_________________
+				center--> es donde estara centrado el mapa
+				zoom--> acercamiento o alejamiento, 0 es el mapa de la tierra
+				disableDefaultUI--> si se pone igual a true, se eliminan los controles de la interfaz de usuario(UI)
+				mapTypeId-->Se refiere al tipo de mapa.
+					Admite los siguientes valores: 
+						MapTypeId.ROADMAP muestra la vista de mapa de carretera predeterminada.
+						MapTypeId.SATELLITE muestra imágenes de satélite de Google Earth.
+						MapTypeId.HYBRID muestra una mezcla de vistas normales y de satélite.
+						MapTypeId.TERRAIN muestra un mapa físico basado en información del relieve
+					Ejemplo de uso:
+						mapTypeId: google.maps.MapTypeId.ROADMAP
+			*/
+			var mapOptions = {
+				center: new google.maps.LatLng(latitud, longitud),
+				zoom: zoom,
+				//disableDefaultUI: true,
+				mapTypeId: google.maps.MapTypeId.SATELLITE
+			};
+			
+			//se crea un nuevo mapa, pasandole como parametro el elemento que va a contener el mapa(div)
+			var map = new google.maps.Map(document.getElementById("mapa"),
+				mapOptions);
+				
+			//se añade un manejador de eventos para que cuando se haga click en el mapa, se añada una marca:
+			google.maps.event.addListener(map, 'click', function(event) {
+				//event.latLng -->obtiene las coordenadas latitud y longitud de donde se hizo clic
+				//ponerMarca(event.latLng,map);
+				ponerMarcaPersonal(event.latLng,map);
+			});	
+		}
+		
+		function ponerMarca(sitio,mapa) {
+			var marca = new google.maps.Marker({
+				position: sitio,
+				map: mapa,
+				title: "Marca Simple"
+			});
+			//centra el mapa donde se hizo la marca
+			mapa.setCenter(sitio);
+			
+			//añadir un evento para que cuando se haga clic se borre la marca:
+			//google.maps.event.addListener(marca, 'click',borrarMarca);
+			//mostrar una ventana con informacion de la marca cuando se hace clic
+			google.maps.event.addListener(marca, 'click',function(){
+				mostrarInfoMarca(mapa,marca);			
+			});
+		}
+				
+		//Para crear una marca personalizada:		
+		function ponerMarcaPersonal(sitio,mapa){
+			// el tamaño de las marcas se expresa como X,Y
+			//el origen de la imagen (0,0), es la parte superior izquierda de la imagen
+			
+			// Origenes, posicion del enlace(link, donde se hace clic en la marca) y coordenadas de la marca
+			//incrementan en X a la derecha y Y hacia abajo
+
+			var imagen={
+				url: 'narutoIcono.jpg',
+				//Esta marca es de 20 pixeles de ancho y 32 pixeles de alto
+				size: new google.maps.Size(20, 32),
+				// Origen de la imagen (0,0)
+				origin: new google.maps.Point(0,0),
+				// el enlace de la imagen es en (0,32)
+				anchor: new google.maps.Point(0, 32)
+			};
+			//Shapes define la region clickeable del icono
+			// el tipo define un area HTML 'poly' que traza un poligono como series de puntos (X,Y)
+			//La coordenada final, se conecta a la primera coordenada, cerrando el poligono
+
+			var shape = {
+				coord: [1, 1, 1, 32, 18, 32, 18 , 1],
+				type: 'poly'
+			};
+			
+			var marca=new google.maps.Marker({
+					position: sitio,
+					map: mapa,
+					icon: imagen,
+					shape: shape,
+					title: "Marca Personalizada",					
+			});			
+		}
+		
+		function borrarMarca(){
+			//se usa el parametro null para borrarlo del mapa, si en vez de null, se le pasa el mapa, se dibuja la marca
+			this.setMap(null);
+		}
+		
+		function posicionMarca(marca){
+			//se obtiene la posicion de la marca
+			var posicion_marca=marca.getPosition();
+			//Con la posicion, se sacan Latitud y Longitud
+			var latitud_marca=posicion_marca.lat();
+			var longitud_marca=posicion_marca.lng();
+			
+			var mensaje="Latitud= "+latitud_marca+"<br/>Longitud= "+longitud_marca;
+			return mensaje;
+		}
+		
+		function mostrarInfoMarca(mapa,marca){
+			var informacion=posicionMarca(marca);
+			//crea el objeto de la ventana
+			var infoVentana = new google.maps.InfoWindow({
+				content: informacion,
+				//maxWidth: 300,
+				//maxHeigth: 300
+			});
+			//abre la ventana
+			infoVentana.open(mapa,marca);
+		}		
+		
+		//El "window.onload..." hace lo mismo que la siguiente línea:
+		//google.maps.event.addDomListener(window, 'load', initialize);
+		  
+		window.onload = function() {
+			//se carga el mapa
+			initialize();
+		}
+    </script>
+  </head>
+  <body>
+    <div id="mapa"/>
+  </body>
+</html>
